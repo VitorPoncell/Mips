@@ -1,0 +1,83 @@
+.data
+	x: .word 5
+.text
+#int fat (n) {
+#if (n==0) return 1;               
+#   else
+#      return fat(n-1)*n;}
+#main () {
+#int n;                        
+#n = 5;
+#printf("O fatorial de %d é %d \n",n,fat (n));
+#}
+.globl main
+main:
+	#main<
+	#n = 5<
+	lw $s0, x
+	move $t0, $s0
+	#>n = 5
+	# 0sp valor de quem se quer o fatorial - 4sp resultado do fatorial de 0sp - 8sp endereco de rentorno para a funcao que chamou
+	#fat(n)<
+	addi $sp, $sp, -12
+	sw $t0, ($sp)
+	sw $ra, 8($sp)
+	jal factorial
+	#>fat(n)
+	#ao sair da funcao o resultado estara em 4sp 
+	#print<
+	li $v0, 1
+	lw $a0, 4($sp)
+	syscall
+	#>print
+	li $v0, 10
+	syscall
+	#>main
+.text
+factorial:
+	#<if (n==0)
+	lw $t0, ($sp)
+	#se t0 == 0 retorna 1 
+	beqz  $t0, return_one
+	#<if (n==0)
+	# se nao o valor o qual se quer o fatorial é reduzido em 1
+	#else<
+	#fat(n-1)
+	addi $t0, $t0, -1
+		
+	# move o ponteiro para guardar o proximo conjunto de valor inicial - resultado fatorial - endereco de retorno
+	addi $sp, $sp, -12
+	#salva o valor do novo fatorial que se quer chegar e do endereco de retorno
+	sw $t0, ($sp)
+	sw $ra, 8($sp)
+	
+	# chama o fatorial novamente
+	jal factorial
+	#>fat(n-1)
+	# *n<
+	# carretga resultado do fatorial e endereco de retorno
+	lw $ra, 8($sp)
+	lw $t1, 4($sp)
+	#carrega o valor inicial do conjunto anterior
+	lw $t2, 12($sp)
+	# faz a multiplicacao dos mesmos
+	mul $t3, $t1, $t2
+	#salva valor obtido como resultado do fatorial anterior
+	sw $t3, 16($sp)
+	#move o ponteiro para o conjunto fatorial anterior
+	addi $sp, $sp, 12
+	#> *n
+	#retorna para quem o chamou
+	#return<
+	jr $ra
+	#>return
+	#>else
+.text
+return_one:
+	#salva 1 ao resultado do fatorial e retorna para quem o chamou
+	#<return 1
+	li $t0, 1
+	sw $t0, 4($sp)
+	jr $ra
+	#>return 1
+	
